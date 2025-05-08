@@ -35,8 +35,20 @@ def main():
     parser.add_argument(
         "--speed", type=float, default=1.0, help="Speech speed multiplier (default: 1.0)"
     )
+    parser.add_argument(
+        "--use-ssl", action="store_true", help="Enable SSL/TLS encryption"
+    )
+    parser.add_argument(
+        "--cert-file", help="Path to SSL certificate file (required if --use-ssl is set)"
+    )
+    parser.add_argument(
+        "--key-file", help="Path to SSL private key file (required if --use-ssl is set)"
+    )
     
     args = parser.parse_args()
+    
+    if args.use_ssl and (not args.cert_file or not args.key_file):
+        parser.error("--cert-file and --key-file are required when --use-ssl is set")
     
     logger.info("Starting MeloTTS server...")
     logger.info(f"Host: {args.host}, Port: {args.port}")
@@ -44,6 +56,8 @@ def main():
     logger.info(f"Default language: {args.language}")
     logger.info(f"Device: {args.device}")
     logger.info(f"Speed: {args.speed}")
+    if args.use_ssl:
+        logger.info(f"SSL enabled with cert: {args.cert_file}, key: {args.key_file}")
     
     # Create and start the server
     server = MeloTTSServer(
@@ -53,6 +67,9 @@ def main():
         language=args.language,
         device=args.device,
         speed=args.speed,
+        use_ssl=args.use_ssl,
+        cert_file=args.cert_file,
+        key_file=args.key_file,
     )
     
     server.start()

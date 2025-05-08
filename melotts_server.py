@@ -4,6 +4,7 @@ import numpy as np
 import re
 import base64
 import hashlib
+import ssl
 from loguru import logger
 
 from melo.api import TTS
@@ -27,7 +28,7 @@ WEBSOCKET_RESPONSE = (
 
 class MeloTTSServer:
     def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT, sample_rate=DEFAULT_SAMPLE_RATE,
-                 language="EN", device="auto", speed=1.0):
+                 language="EN", device="auto", speed=1.0, use_ssl=False, cert_file=None, key_file=None):
         self.host = host
         self.port = port
         self.sample_rate = sample_rate
@@ -37,7 +38,10 @@ class MeloTTSServer:
         self.server_socket = None
         self.tts_models = {}
         self.supported_languages = ["EN", "ES", "FR", "ZH", "JP", "KR"]
-        logger.info(f"Initializing server with: host={host}, port={port}, language={language}, device={device}, speed={speed}")
+        self.use_ssl = use_ssl
+        self.cert_file = cert_file
+        self.key_file = key_file
+        logger.info(f"Initializing server with: host={host}, port={port}, language={language}, device={device}, speed={speed}, ssl={use_ssl}")
         self._initialize_tts()
 
     def _initialize_tts(self):
@@ -376,6 +380,19 @@ class MeloTTSServer:
             while True:
                 client_socket, addr = self.server_socket.accept()
                 logger.info(f"New client connected: {addr}")
+                
+                if self.use_ssl:
+                    try:
+                        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+                        if self.cert_file and self.key_file:
+                            ssl_context.load_cert_chain(certfile=self.cert_file, keyfile=self.key_file)
+                        client_socket = ssl_context.wrap_socket(client_socket, server_side=True)
+                        logger.info(f"SSL handshake completed with: {addr}")
+                    except ssl.SSLError as e:
+                        logger.error(f"SSL handshake failed: {str(e)}")
+                        client_socket.close()
+                        continue
+                
                 threading.Thread(target=self.handle_client, args=(client_socket,), daemon=True).start()
 
         except KeyboardInterrupt:
