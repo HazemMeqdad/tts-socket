@@ -11,7 +11,7 @@ from melo.api import TTS
 from melo.split_utils import split_sentence
 
 DEFAULT_HOST = "0.0.0.0"
-DEFAULT_PORT = 5000
+DEFAULT_PORT = 5800
 DEFAULT_SAMPLE_RATE = 24000
 DEFAULT_MAX_TEXT_LENGTH = 200
 

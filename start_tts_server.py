@@ -20,7 +20,7 @@ def main():
         "--host", default="0.0.0.0", help="Host address to bind to (default: 0.0.0.0)"
     )
     parser.add_argument(
-        "--port", type=int, default=5000, help="Port to listen on (default: 5000)"
+        "--port", type=int, default=5800, help="Port to listen on (default: 5800)"
     )
     parser.add_argument(
         "--sample-rate", type=int, default=24000, help="Audio sample rate (default: 24000)"
